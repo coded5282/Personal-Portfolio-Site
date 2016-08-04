@@ -1,22 +1,25 @@
-var express = require("express"),
-    app = express(),
-    bodyParser = require("body-parser"),
-    mongoose = require("mongoose"),
-    flash = require("connect-flash"), 
-    passport = require("passport"),
-    LocalStrategy = require("passport-local"),
-    methodOverride = require("method-override"), 
-    Campground = require("./models/campground"),
-    Comment = require("./models/comment"), 
-    User = require("./models/user"), 
-    seedDB = require("./seeds"); 
+var express = require("express");
+var app = express();
+var bodyParser = require("body-parser");
+var mongoose = require("mongoose");
+var flash = require("connect-flash");
+var passport = require("passport");
+var LocalStrategy = require("passport-local");
+var methodOverride = require("method-override");
+// var Campground = require("./models/campground");
+// var Comment = require("./models/comment");
+// var Project = require("./models/project"); 
+// var User = require("./models/user");
+var seedDB = require("./seeds");
     
 // // requiring routes     
 // var commentRoutes = require("./routes/comments"),
 //     campgroundRoutes = require("./routes/campgrounds"),
 //     authRoutes = require("./routes/index"); 
+// var indexRoutes = require("./routes/index");
+// var projectRoutes = require("./routes/projects"); 
 
-var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"; 
+var url = process.env.DATABASEURL || "mongodb://localhost/portfolio"; 
 // mongoose.connect("mongodb://localhost/yelp_camp"); 
 mongoose.connect(url); // environment variable for database url 
 // mongoose.connect("mongodb://ed:mongoed123@ds023634.mlab.com:23634/yelpcamp"); // connecting to mongolabs 
@@ -24,11 +27,16 @@ mongoose.connect(url); // environment variable for database url
 
 
 app.use(bodyParser.urlencoded({extended: true})); 
+app.use(bodyParser.json());
 app.set("view engine", "ejs"); 
 app.use(express.static(__dirname + "/public"));
 app.use(methodOverride("_method")); 
 app.use(flash()); 
 //seedDB(); // seed the database 
+var Project = require("./models/project"); 
+
+var indexRoutes = require("./routes/index");
+var projectRoutes = require("./routes/projects"); 
 
 // // PASSPORT CONFIGURATION
 // app.use(require("express-session")({
@@ -53,10 +61,22 @@ app.use(flash());
 // app.use("/", authRoutes);
 // app.use("/campgrounds", campgroundRoutes);
 // app.use("/campgrounds/:id/comments", commentRoutes); 
+app.use("/", indexRoutes); 
+app.use("/projects", projectRoutes); 
 
 app.listen(process.env.PORT, process.env.IP, function() {
    console.log("Portfolio server has started!");  
 });
+
+Project.create({
+    name: "ed",
+    image: "ed",
+    description: "ed",
+    technologies: "ed",
+    github: "ed"
+});
+
+module.exports = app; 
 
 /* RESTFUL ROUTES
 

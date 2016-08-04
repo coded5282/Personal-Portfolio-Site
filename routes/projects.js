@@ -1,89 +1,104 @@
 var express = require("express");
 var router = express.Router({mergeParams: true}); 
-var Campground = require("../models/campground"); 
-var Comment = require("../models/comment"); 
-var middleware = require("../middleware"); 
+var Project = require("../models/project.js"); 
+// var Comment = require("../models/comment"); 
+// var middleware = require("../middleware"); 
 
 //===============================
-// COMMENTS ROUTES
+// PROJECTS ROUTES
 // ===============================
 
-// comments new 
-router.get("/new", middleware.isLoggedIn, function(req, res) {
-    // find campground by id
-    Campground.findById(req.params.id, function(err, campground) {
+// INDEX - show all projects
+router.get("/", function(req, res) {
+    // Get all campgrounds from DB
+    Project.find({}, function(err, allProjects) {
+       if (err) {
+           console.log(err);
+       } else {
+            // res.render("projects/index", {projects:allProjects}); 
+            res.json(allProjects); 
+       }
+    });
+});
+
+
+// CREATE - add new project to database
+router.post("/", function(req, res) {
+    var name = req.body.name;
+    var image = req.body.image; 
+    var description = req.body.description; 
+    var tech = req.body.technologies; 
+    var github = req.body.github; 
+    var newProject = {name: name, description: description, technologies: tech, github: github, image: image }; 
+    console.log(name); 
+    // Create a new campground and save to DB 
+    Project.create(newProject, function(err, newlyCreated) {
+        if (err) {
+            console.log(err); 
+        } else {
+            // res.redirect("/campgrounds"); 
+            res.json(newlyCreated);
+        }
+    });
+    
+   // get data from form and add to campgrounds array
+   // redirect back to campgrounds page 
+});
+
+// NEW - show form to create new campground 
+// router.get("/new", function(req, res) {
+//     res.render("projects/new.ejs"); 
+// }); 
+
+// SHOW - shows more info about one project
+router.get("/:id", function(req, res) {
+    // find the campground with provided ID
+    Project.findById(req.params.id).exec(function(err, foundProject) {
        if (err) {
            console.log(err); 
        } else {
-           res.render("comments/new", {campground: campground}); 
+           console.log(foundProject); 
+        //   res.render("campgrounds/show", {campground: foundCampground}); 
+        res.json(foundProject);
        }
     });
-});
-
-// comments create 
-router.post("/", middleware.isLoggedIn, function(req, res) {
-   // lookup campgrounds using ID
-   Campground.findById(req.params.id, function(err, campground) {
-      if (err) {
-          console.log(err);
-          res.redirect("/campgrounds"); 
-      } else {
-          Comment.create(req.body.comment, function(err, comment) {
-             if (err) {
-                 req.flash("error", "Something went wrong"); 
-                 console.log(err);
-             } else {
-                 // add username and id to comment
-                 comment.author.id = req.user._id; 
-                 comment.author.username = req.user.username;
-                 // save comment 
-                 comment.save(); 
-                 campground.comments.push(comment); 
-                 campground.save(); 
-                 req.flash("success", "Successfully added comment"); 
-                 res.redirect("/campgrounds/" + campground._id); 
-             }
-          });
-      }
-   });
-   // create new comment
-   // connect new comment to campground 
-   // redirect to campground show page 
-});
-
-// COMMENTS EDIT ROUTE
-router.get("/:comment_id/edit", middleware.checkCommentOwnership, function(req, res) {
-    Comment.findById(req.params.comment_id, function(err, foundComment) {
-       if (err) {
-           res.redirect("back");
-       } else {
-           res.render("comments/edit", {campground_id: req.params.id, comment: foundComment}); 
-       }
-    });
+    // render show template with that campground 
 }); 
 
-// COMMENT UPDATE
-router.put("/:comment_id", middleware.checkCommentOwnership, function(req, res) {
-   Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, function(err, updatedComment) {
-      if (err) {
-          res.redirect("back");
-      } else {
-          res.redirect("/campgrounds/" + req.params.id); 
-      }
-   });
+// EDIT CAMPGROUND ROUTE
+// router.get("/:id/edit", middleware.checkCampgroundOwnership, function(req, res) {
+//     Campground.findById(req.params.id, function(err, foundCampground) {
+//         res.render("campgrounds/edit", {campground: foundCampground});
+//     }); 
+// });
+
+// UPDATE PROJECT ROUTE 
+router.put("/:id", function(req, res) {
+    // find and update the correct project
+    Project.findByIdAndUpdate(req.params.id, req.body.project, function(err, updatedProject) {
+       if (err) {
+        //   res.redirect("/campgrounds"); 
+            console.log(err); 
+       } else {
+            // res.redirect("/campgrounds/" + req.params.id); 
+            res.json(updatedProject); 
+       }
+    });
+    // redirect somewhere (show page) 
 });
 
-// COMMENT DESTROY ROUTE
-router.delete("/:comment_id", middleware.checkCommentOwnership, function(req, res) {
-   // findByIdAndRemove
-   Comment.findByIdAndRemove(req.params.comment_id, function(err) {
-      if (err) {
-          res.redirect("back");
-      } else {
-          req.flash("success", "Comment deleted"); 
-          res.redirect("/campgrounds/" + req.params.id); 
-      }
-   });
+// DESTROY PROJECT ROUTE 
+router.delete("/:id", function(req, res) {
+    Project.findByIdAndRemove(req.params.id, function(err, deletedProject) {
+        if (err) {
+            // res.redirect("/campgrounds"); 
+            console.log(err); 
+        } else {
+            // res.redirect("/campgrounds"); 
+            res.json(deletedProject); 
+        }
+    });
 });
+
 
 module.exports = router; 
