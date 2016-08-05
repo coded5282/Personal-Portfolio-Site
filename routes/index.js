@@ -5,7 +5,7 @@ var passport = require("passport");
 
 //root route
 router.get("/", function(req, res){
-    res.render("index.ejs");
+    res.render("landing.ejs");
 });
 
 // // show register form
